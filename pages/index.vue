@@ -1,31 +1,30 @@
 <template>
   <div
-    class="max-w-3xl mx-auto leading-loose px-4 pt-4 pb-20 font-body flex flex-col space-y-6"
+    class="flex flex-col max-w-3xl px-4 pt-4 pb-20 mx-auto space-y-6 leading-loose font-body"
   >
-    <div class="text-center py-4">
-      <h1 class="font-bold text-4xl lg:text-5xl text-indigo-500 font-display">
+    <div class="py-4 text-center">
+      <h1 class="text-4xl font-bold text-indigo-500 lg:text-5xl font-display">
         Ekoji Graph Challenge #3
       </h1>
     </div>
     <div>
-      <h2 class="font-bold text-3xl lg:text-4xl text-indigo-500 font-display">
+      <h2 class="text-3xl font-bold text-indigo-500 lg:text-4xl font-display">
         Data Graph
       </h2>
       <div class="mt-4">
-        <div>nodes: {{ nodes }}</div>
-        <div>edges: {{ edges }}</div>
+        <img src="~/assets/images/graph.png" />
       </div>
     </div>
     <div>
-      <h2 class="font-bold text-3xl lg:text-4xl text-indigo-500 font-display">
+      <h2 class="text-3xl font-bold text-indigo-500 lg:text-4xl font-display">
         Temukan Rute Dari Dua Kota
       </h2>
-      <form @submit.prevent="calculateDistance" class="mt-4 max-w-xs">
+      <form @submit.prevent="calculateDistance" class="max-w-xs mt-4">
         <div>
           <span class="text-gray-700">Pilih kota asal</span>
           <select
             v-model="startCity"
-            class="form-select block w-full mt-1"
+            class="block w-full mt-1 form-select"
             required
           >
             <option v-for="(value, key) in nodes" :key="key">{{ key }}</option>
@@ -35,7 +34,7 @@
           <span class="text-gray-700">Pilih kota tujuan</span>
           <select
             v-model="endCity"
-            class="form-select block w-full mt-1"
+            class="block w-full mt-1 form-select"
             required
           >
             <option v-for="(value, key) in nodes" :key="key">{{ key }}</option>
@@ -43,18 +42,28 @@
         </div>
         <div class="mt-4">
           <button
-            class="bg-indigo-500 hover:bg-indigo-700 text-white font-semibold transition duration-500 py-2 px-4 rounded"
+            class="px-4 py-2 font-semibold text-white transition duration-500 bg-indigo-500 rounded hover:bg-indigo-700"
           >
-            Cari rute terdekat
+            Cari Rute Terdekat
           </button>
         </div>
       </form>
     </div>
     <div>
       <div>
-        <h2 class="font-bold text-3xl lg:text-4xl text-indigo-500 font-display">
+        <h2 class="text-3xl font-bold text-indigo-500 lg:text-4xl font-display">
           Rute terdekat
         </h2>
+        <div>
+          <div class="flex flex-row items-center justify-start">
+            <div class="w-6 h-6 bg-indigo-500 rounded"></div>
+            <div class="ml-2">= Kota</div>
+          </div>
+          <div class="flex flex-row items-center justify-start">
+            <div class="w-6 h-6 border border-indigo-500 rounded"></div>
+            <div class="ml-2">= Jalan</div>
+          </div>
+        </div>
       </div>
       <div class="mt-4">
         <div v-if="done">
@@ -259,6 +268,13 @@ export default {
         ...copyEndResultPath
       ];
 
+      const combineResultIncrement = [
+        ...this.startResult.increment,
+        ...copyEndResultIncrement
+      ];
+
+      console.log("combineResultPath: ", combineResultPath);
+
       const combineDistance =
         this.startResult.totalDistance + this.endResult.totalDistance;
 
@@ -267,7 +283,7 @@ export default {
           this.startResult.distanceEdges + this.endResult.distanceEdges,
         distanceNodes:
           this.startResult.distanceNodes + this.endResult.distanceNodes,
-        increment: copyEndResultIncrement,
+        increment: combineResultIncrement,
         incrementCount: combineDistance,
         totalDistance: combineDistance,
         path: combineResultPath,
