@@ -258,19 +258,14 @@ export default {
         this.startCity
       );
 
-      const copyEndResultPath = [...this.endResult.path];
-      copyEndResultPath.shift();
-      const copyEndResultIncrement = [...this.endResult.increment];
-      copyEndResultIncrement.shift();
-
       const combineResultPath = [
         ...this.startResult.path,
-        ...copyEndResultPath
+        ...this.endResult.path
       ];
 
       const combineResultIncrement = [
         ...this.startResult.increment,
-        ...copyEndResultIncrement
+        ...this.endResult.increment
       ];
 
       console.log("combineResultPath: ", combineResultPath);
