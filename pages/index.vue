@@ -128,6 +128,14 @@ export default {
     this.endGraph = { ...this.edges };
   },
   methods: {
+    reset() {
+      this.startGraph = { ...this.edges };
+      this.endGraph = { ...this.edges };
+      this.startResult = {};
+      this.endResult = {};
+      this.combineResult = {};
+      this.done = false;
+    },
     shortestDistanceNode(distances, visited) {
       let shortest = null;
       for (let node in distances) {
@@ -188,7 +196,6 @@ export default {
       }
 
       shortestPath.reverse();
-      console.log("shortestPath: ", shortestPath);
 
       let distanceNodes = 0;
       shortestPath.forEach(path => {
@@ -221,13 +228,13 @@ export default {
       return results;
     },
     calculateDistance() {
+      this.reset();
       this.done = true;
       this.startResult = this.findShortestPath(
         this.startGraph,
         this.startCity,
         this.endCity
       );
-      console.log("this.startResult: ", this.startResult);
 
       const visitedCities = [...this.startResult.path];
       visitedCities.pop();
@@ -251,6 +258,7 @@ export default {
         ...this.startResult.path,
         ...copyEndResultPath
       ];
+
       const combineDistance =
         this.startResult.totalDistance + this.endResult.totalDistance;
 
@@ -266,9 +274,6 @@ export default {
         from: combineResultPath[0],
         to: combineResultPath[this.startResult.path.length - 1]
       };
-
-      console.log("this.endResult: ", this.endResult);
-      console.log("this.combineResult: ", this.combineResult);
     }
   },
   head: {
