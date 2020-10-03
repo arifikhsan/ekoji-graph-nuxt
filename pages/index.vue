@@ -1,6 +1,6 @@
 <template>
   <div
-    class="max-w-5xl mx-auto leading-loose px-4 pt-4 pb-20 font-body flex flex-col space-y-6"
+    class="max-w-3xl mx-auto leading-loose px-4 pt-4 pb-20 font-body flex flex-col space-y-6"
   >
     <div class="text-center py-4">
       <h1 class="font-bold text-4xl lg:text-5xl text-indigo-500 font-display">
@@ -23,13 +23,21 @@
       <form @submit.prevent="calculateDistance" class="mt-4 max-w-xs">
         <div>
           <span class="text-gray-700">Pilih kota asal</span>
-          <select class="form-select block w-full mt-1">
+          <select
+            v-model="startCity"
+            class="form-select block w-full mt-1"
+            required
+          >
             <option v-for="(value, key) in nodes" :key="key">{{ key }}</option>
           </select>
         </div>
         <div class="mt-3">
           <span class="text-gray-700">Pilih kota tujuan</span>
-          <select class="form-select block w-full mt-1">
+          <select
+            v-model="endCity"
+            class="form-select block w-full mt-1"
+            required
+          >
             <option v-for="(value, key) in nodes" :key="key">{{ key }}</option>
           </select>
         </div>
@@ -50,67 +58,9 @@
       </div>
       <div class="mt-4">
         <div v-if="done">
-          <div>
-            <div>
-              <h2
-                class="font-semibold text-2xl lg:text-3xl text-indigo-500 font-display"
-              >
-                Rute berangkat
-              </h2>
-              <div class="px-4">
-                <ol class="list-decimal">
-                  <li>
-                    Jumlah biaya kota dan jalan: {{ startResult.totalDistance }}
-                  </li>
-                  <li>Kota yang dilalui: {{ startResult.path }}</li>
-                  <li>
-                    Jumlah biaya tiap kota: {{ startResult.distanceEdges }}
-                  </li>
-                  <li>
-                    Jumlah biaya tiap jalan: {{ startResult.distanceNodes }}
-                  </li>
-                  <li>
-                    Rute:
-                    <span
-                      class="bg-indigo-500 text-white ml-2 px-2 py-1 rounded"
-                      v-for="(item, index) in startResult.increment"
-                      :key="index"
-                      >{{ item.value }}</span
-                    >
-                  </li>
-                </ol>
-              </div>
-            </div>
-            <div class="mt-4">
-              <h2
-                class="font-semibold text-2xl lg:text-3xl text-indigo-500 font-display"
-              >
-                Rute pulang
-              </h2>
-              <div class="px-4">
-                <ol class="list-decimal">
-                  <li>
-                    Jumlah biaya kota dan jalan: {{ endResult.totalDistance }}
-                  </li>
-                  <li>Kota yang dilalui: {{ endResult.path }}</li>
-                  <li>Jumlah biaya tiap kota: {{ endResult.distanceEdges }}</li>
-                  <li>
-                    Jumlah biaya tiap jalan: {{ endResult.distanceNodes }}
-                  </li>
-                  <li>
-                    Rute:
-                    <span
-                      class="bg-indigo-500 text-white ml-2 px-2 py-1 rounded"
-                      v-for="(item, index) in endResult.increment"
-                      :key="index"
-                      >{{ item.value }}</span
-                    >
-                  </li>
-                </ol>
-              </div>
-            </div>
-          </div>
-          <div></div>
+          <result-route :result="combineResult" type="pulang pergi" />
+          <result-route class="mt-8" :result="startResult" type="berangkat" />
+          <result-route class="mt-8" :result="endResult" type="pulang" />
         </div>
         <div v-else>
           Pilih kota asal dan kota tujuan, kemudian klik tombol
@@ -122,6 +72,7 @@
 </template>
 
 <script>
+import ResultRoute from "~/components/result-route";
 export default {
   data() {
     return {
@@ -163,8 +114,14 @@ export default {
       endGraph: {},
       startResult: {},
       endResult: {},
+      combineResult: {},
+      startCity: "a",
+      endCity: "j",
       done: false
     };
+  },
+  components: {
+    ResultRoute
   },
   created() {
     this.startGraph = { ...this.edges };
@@ -256,14 +213,20 @@ export default {
         increment,
         incrementCount,
         totalDistance: distanceNodes + distances[endNode],
-        path: shortestPath
+        path: shortestPath,
+        from: shortestPath[0],
+        to: shortestPath[shortestPath.length - 1]
       };
 
       return results;
     },
     calculateDistance() {
       this.done = true;
-      this.startResult = this.findShortestPath(this.startGraph, "a", "j");
+      this.startResult = this.findShortestPath(
+        this.startGraph,
+        this.startCity,
+        this.endCity
+      );
       console.log("this.startResult: ", this.startResult);
 
       const visitedCities = [...this.startResult.path];
@@ -273,9 +236,39 @@ export default {
       visitedCities.forEach(usedNode => {
         delete this.endGraph[usedNode];
       });
-      this.endResult = this.findShortestPath(this.endGraph, "j", "a");
+      this.endResult = this.findShortestPath(
+        this.endGraph,
+        this.endCity,
+        this.startCity
+      );
+
+      const copyEndResultPath = [...this.endResult.path];
+      copyEndResultPath.shift();
+      const copyEndResultIncrement = [...this.endResult.increment];
+      copyEndResultIncrement.shift();
+
+      const combineResultPath = [
+        ...this.startResult.path,
+        ...copyEndResultPath
+      ];
+      const combineDistance =
+        this.startResult.totalDistance + this.endResult.totalDistance;
+
+      this.combineResult = {
+        distanceEdges:
+          this.startResult.distanceEdges + this.endResult.distanceEdges,
+        distanceNodes:
+          this.startResult.distanceNodes + this.endResult.distanceNodes,
+        increment: copyEndResultIncrement,
+        incrementCount: combineDistance,
+        totalDistance: combineDistance,
+        path: combineResultPath,
+        from: combineResultPath[0],
+        to: combineResultPath[this.startResult.path.length - 1]
+      };
 
       console.log("this.endResult: ", this.endResult);
+      console.log("this.combineResult: ", this.combineResult);
     }
   },
   head: {
