@@ -20,7 +20,7 @@
       <h2 class="font-bold text-3xl lg:text-4xl text-indigo-500 font-display">
         Temukan Rute Dari Dua Kota
       </h2>
-      <form @submit.prevent="calculateDistance" class="mt-4">
+      <form @submit.prevent="calculateDistance" class="mt-4 max-w-xs">
         <div>
           <span class="text-gray-700">Pilih kota asal</span>
           <select class="form-select block w-full mt-1">
@@ -33,7 +33,7 @@
             <option v-for="(value, key) in nodes" :key="key">{{ key }}</option>
           </select>
         </div>
-        <div class="mt-3">
+        <div class="mt-4">
           <button
             class="bg-indigo-500 hover:bg-indigo-700 text-white font-semibold transition duration-500 py-2 px-4 rounded"
           >
@@ -51,29 +51,63 @@
       <div class="mt-4">
         <div v-if="done">
           <div>
-            <h2
-              class="font-semibold text-2xl lg:text-3xl text-indigo-500 font-display"
-            >
-              Rute berangkat
-            </h2>
-            <div class="px-4">
-              <ol class="list-decimal">
-                <li>Jumlah biaya: {{ startResult.totalDistance }}</li>
-                <li>Kota yang dilalui: {{ startResult.path }}</li>
-                <li>Jumlah biaya tiap kota: {{ startResult.distanceEdges }}</li>
-                <li>
-                  Jumlah biaya tiap jalan: {{ startResult.distanceNodes }}
-                </li>
-                <li>
-                  Rute:
-                  <span
-                    class="bg-indigo-500 text-white ml-2 px-2 py-1 rounded"
-                    v-for="(item, index) in startResult.increment"
-                    :key="index"
-                    >{{ item.value }}</span
-                  >
-                </li>
-              </ol>
+            <div>
+              <h2
+                class="font-semibold text-2xl lg:text-3xl text-indigo-500 font-display"
+              >
+                Rute berangkat
+              </h2>
+              <div class="px-4">
+                <ol class="list-decimal">
+                  <li>
+                    Jumlah biaya kota dan jalan: {{ startResult.totalDistance }}
+                  </li>
+                  <li>Kota yang dilalui: {{ startResult.path }}</li>
+                  <li>
+                    Jumlah biaya tiap kota: {{ startResult.distanceEdges }}
+                  </li>
+                  <li>
+                    Jumlah biaya tiap jalan: {{ startResult.distanceNodes }}
+                  </li>
+                  <li>
+                    Rute:
+                    <span
+                      class="bg-indigo-500 text-white ml-2 px-2 py-1 rounded"
+                      v-for="(item, index) in startResult.increment"
+                      :key="index"
+                      >{{ item.value }}</span
+                    >
+                  </li>
+                </ol>
+              </div>
+            </div>
+            <div class="mt-4">
+              <h2
+                class="font-semibold text-2xl lg:text-3xl text-indigo-500 font-display"
+              >
+                Rute pulang
+              </h2>
+              <div class="px-4">
+                <ol class="list-decimal">
+                  <li>
+                    Jumlah biaya kota dan jalan: {{ endResult.totalDistance }}
+                  </li>
+                  <li>Kota yang dilalui: {{ endResult.path }}</li>
+                  <li>Jumlah biaya tiap kota: {{ endResult.distanceEdges }}</li>
+                  <li>
+                    Jumlah biaya tiap jalan: {{ endResult.distanceNodes }}
+                  </li>
+                  <li>
+                    Rute:
+                    <span
+                      class="bg-indigo-500 text-white ml-2 px-2 py-1 rounded"
+                      v-for="(item, index) in endResult.increment"
+                      :key="index"
+                      >{{ item.value }}</span
+                    >
+                  </li>
+                </ol>
+              </div>
             </div>
           </div>
           <div></div>
@@ -197,6 +231,7 @@ export default {
       }
 
       shortestPath.reverse();
+      console.log("shortestPath: ", shortestPath);
 
       let distanceNodes = 0;
       shortestPath.forEach(path => {
@@ -231,10 +266,11 @@ export default {
       this.startResult = this.findShortestPath(this.startGraph, "a", "j");
       console.log("this.startResult: ", this.startResult);
 
-      this.startResult.path.pop();
-      this.startResult.path.shift();
+      const visitedCities = [...this.startResult.path];
+      visitedCities.pop();
+      visitedCities.shift();
 
-      this.startResult.path.forEach(usedNode => {
+      visitedCities.forEach(usedNode => {
         delete this.endGraph[usedNode];
       });
       this.endResult = this.findShortestPath(this.endGraph, "j", "a");
